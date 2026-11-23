@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+
+# Build & Release artifacts (upload zip to GitHub Releases, not git tree)
+build/
+dist/
+release/
+*.spec
+
+# Local runtime logs & temporary files
+score_history.jsonl
+samples/
+*.log
+.DS_Store
+Thumbs.db

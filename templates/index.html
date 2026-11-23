@@ -1,0 +1,1662 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>喀兰贸易技术研发部 · 最佳策略求解器</title>
+<style>
+  :root {
+    --bg: #0b1220;
+    --panel: #121c2e;
+    --panel2: #18253d;
+    --border: #263859;
+    --text: #e6eefc;
+    --muted: #8fa5c9;
+    --accent: #38bdf8;
+    --accent2: #818cf8;
+    --green: #34d399;
+    --amber: #fbbf24;
+    --red: #f87171;
+    --purple: #a78bfa;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: radial-gradient(circle at top right, #162442 0%, var(--bg) 55%);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 20px;
+    background: rgba(12, 20, 36, 0.92);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    backdrop-filter: blur(8px);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .brand-badge {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #0ea5e9, #6366f1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 16px;
+    box-shadow: 0 0 16px rgba(56, 189, 248, 0.35);
+  }
+  .brand h1 {
+    margin: 0;
+    font-size: 17px;
+    letter-spacing: 0.5px;
+  }
+  .brand small {
+    color: var(--muted);
+    font-size: 12px;
+    display: block;
+  }
+  .top-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+  input, select {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 6px 9px;
+    font-size: 13px;
+    outline: none;
+  }
+  input:focus, select:focus {
+    border-color: var(--accent);
+  }
+  button {
+    cursor: pointer;
+    border: none;
+    border-radius: 7px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    background: #253657;
+    transition: all 0.15s ease;
+  }
+  button:hover:not(:disabled) {
+    filter: brightness(1.14);
+    transform: translateY(-1px);
+  }
+  button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #0284c7, #4f46e5);
+    box-shadow: 0 4px 14px rgba(14, 165, 233, 0.28);
+  }
+  .btn-green {
+    background: linear-gradient(135deg, #059669, #10b981);
+  }
+  .btn-amber {
+    background: linear-gradient(135deg, #d97706, #f59e0b);
+  }
+  .btn-auto {
+    background: linear-gradient(135deg, #7c3aed, #ec4899);
+    box-shadow: 0 4px 14px rgba(168, 85, 247, 0.35);
+  }
+  .btn-loop {
+    background: linear-gradient(135deg, #ea580c, #eab308);
+    box-shadow: 0 4px 14px rgba(234, 179, 8, 0.32);
+  }
+  .btn-stop {
+    background: linear-gradient(135deg, #b91c1c, #ef4444);
+  }
+  .score-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .score-pill {
+    font-size: 12px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    color: #e2e8f0;
+  }
+  .score-pill.best {
+    background: rgba(251, 191, 36, 0.2);
+    border-color: var(--amber);
+    color: #fde68a;
+    font-weight: 800;
+  }
+  .auto-log-box {
+    background: #09101d;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.55;
+    color: #cbd5e1;
+    max-height: 185px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+  }
+  .btn-sm {
+    padding: 4px 9px;
+    font-size: 12px;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: 1.08fr 1fr;
+    gap: 16px;
+    padding: 16px 20px 28px;
+    max-width: 1560px;
+    margin: 0 auto;
+  }
+  @media (max-width: 1100px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+  }
+  .card-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 0 10px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #cbd9f5;
+  }
+  .status-bar {
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 12px;
+    display: none;
+  }
+  .status-info { background: rgba(56, 189, 248, 0.14); border: 1px solid rgba(56, 189, 248, 0.35); color: #bae6fd; }
+  .status-warn { background: rgba(251, 191, 36, 0.14); border: 1px solid rgba(251, 191, 36, 0.4); color: #fde68a; }
+  .status-err  { background: rgba(248, 113, 113, 0.15); border: 1px solid rgba(248, 113, 113, 0.45); color: #fecaca; }
+
+  /* Map SVG */
+  .map-wrap {
+    position: relative;
+    background: radial-gradient(ellipse at center, #1b2c4b 0%, #0e1729 100%);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  #boardSvg {
+    width: 100%;
+    height: auto;
+    display: block;
+    user-select: none;
+  }
+  .tile-editor {
+    display: none;
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: var(--panel2);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    font-size: 13px;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .tile-editor.show { display: flex; }
+
+  /* Compact grids */
+  .param-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .field label {
+    display: block;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 3px;
+  }
+  .field input, .field select {
+    width: 100%;
+  }
+  .inline-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+    font-size: 13px;
+  }
+  .hand-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 6px 0 8px;
+    min-height: 44px;
+    align-items: center;
+  }
+  .hand-chip {
+    width: 40px;
+    height: 48px;
+    border-radius: 7px;
+    background: linear-gradient(180deg, #1e293b, #0f172a);
+    border: 1.5px solid #475569;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 800;
+    cursor: pointer;
+    position: relative;
+  }
+  .hand-chip:hover {
+    border-color: var(--red);
+    color: var(--red);
+  }
+  .hand-chip.combo {
+    border-color: #60a5fa;
+    box-shadow: 0 0 10px rgba(96, 165, 250, 0.45);
+  }
+  .hand-chip .combo-tag {
+    position: absolute;
+    top: -8px;
+    font-size: 9px;
+    padding: 1px 4px;
+    border-radius: 4px;
+    background: #3b82f6;
+    color: #fff;
+  }
+  .add-cards button {
+    padding: 5px 11px;
+    font-size: 12px;
+    margin-right: 4px;
+  }
+
+  /* Quests */
+  .quest-row {
+    display: grid;
+    grid-template-columns: 44px 1fr 1fr;
+    gap: 8px;
+    align-items: center;
+    padding: 7px 10px;
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 7px;
+  }
+  .quest-badge {
+    text-align: center;
+    font-weight: 800;
+    font-size: 13px;
+    padding: 4px 0;
+    border-radius: 6px;
+    background: rgba(56, 189, 248, 0.16);
+    color: var(--accent);
+  }
+  .quest-badge.big {
+    background: rgba(251, 191, 36, 0.18);
+    color: var(--amber);
+  }
+  .q-item-edit {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .q-item-edit select { width: 74px; padding: 4px; font-size: 12px; }
+  .q-item-edit input { width: 52px; padding: 4px; font-size: 12px; text-align: center; }
+
+  /* Plans panel */
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 9px 10px;
+    border-radius: 8px;
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    text-align: left;
+  }
+  .tab-btn.active {
+    background: rgba(56, 189, 248, 0.14);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .metric-box {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+  }
+  .metric-box .mlabel { font-size: 11px; color: var(--muted); }
+  .metric-box .mval { font-size: 18px; font-weight: 800; margin-top: 2px; }
+
+  .resync-banner {
+    background: rgba(251, 191, 36, 0.14);
+    border: 1px solid rgba(251, 191, 36, 0.5);
+    color: #fde68a;
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-size: 13px;
+    margin-bottom: 12px;
+    line-height: 1.45;
+  }
+  .step-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .step-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    border-left: 4px solid var(--accent);
+  }
+  .step-item.act-collect { border-left-color: var(--green); }
+  .step-item.act-combo   { border-left-color: var(--purple); background: rgba(139, 92, 246, 0.10); }
+  .step-item.resync-point { box-shadow: inset 0 0 0 1px rgba(251, 191, 36, 0.45); }
+  .step-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #253657;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .tag {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-right: 5px;
+  }
+  .tag-adv   { background: rgba(56, 189, 248, 0.2); color: #7dd3fc; }
+  .tag-col   { background: rgba(52, 211, 153, 0.2); color: #6ee7b7; }
+  .tag-combo { background: rgba(167, 139, 250, 0.25); color: #ddd6fe; }
+  .tag-pts   { background: rgba(251, 191, 36, 0.22); color: #fde68a; }
+
+  .exec-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0;
+  }
+  .prog-preview {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+  }
+  .prog-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 13px;
+    padding: 5px 0;
+  }
+  .preview-img {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    margin-top: 6px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="brand-badge">K</div>
+    <div>
+      <h1>喀兰贸易技术研发部 · 最佳策略求解器</h1>
+      <small>雪山降临1101 · 模拟器自动识图 + 精确全局最优搜索</small>
+    </div>
+  </div>
+  <div class="top-actions">
+    <select id="ctrlMode" onchange="onCtrlModeChange()" title="选择操作端：模拟器或PC端" style="width:120px;">
+      <option value="adb">📱 模拟器(ADB)</option>
+      <option value="pc">🖥️ PC端窗口</option>
+    </select>
+    <input id="adbDevice" value="127.0.0.1:16384" title="ADB设备地址" style="width:136px;" />
+    <span id="pcWinWrap" style="display:none; align-items:center; gap:4px;">
+      <input id="pcWindowTitle" list="pcWindowList" value="明日方舟" title="PC端游戏窗口标题（支持模糊匹配）" style="width:130px;" placeholder="窗口标题" />
+      <datalist id="pcWindowList"></datalist>
+      <button class="btn-sm" onclick="refreshPcWindows()" title="扫描桌面窗口">🔄</button>
+    </span>
+    <select id="stageOverride" title="关卡选择（自动识别或手动指定）" style="width:155px;">
+      <option value="">自动识别关卡</option>
+    </select>
+    <button id="btnSync" class="btn-primary" onclick="syncFromEmulator()">📡 同步</button>
+    <button id="btnAutoStart" class="btn-auto" onclick="startAutoPlay(1)">🚀 单局</button>
+    <button id="btnLoopStart" class="btn-loop" onclick="startAutoPlay('loop')">🔁 反复冲分</button>
+    <span style="display:inline-flex; align-items:center; gap:3px; font-size:12px; color:#cbd5e1; background:var(--panel2); padding:3px 7px; border-radius:6px; border:1px solid var(--border);" title="设置反复冲分要打多少盘（0 = 无限循环直到手动停止或达到目标分）">
+      打<input id="inMaxRuns" type="number" min="0" max="999" value="0" style="width:48px; padding:3px 4px; text-align:center;" />盘
+    </span>
+    <span style="display:inline-flex; align-items:center; gap:3px; font-size:12px; color:#cbd5e1; background:var(--panel2); padding:3px 7px; border-radius:6px; border:1px solid var(--border);" title="某盘达到或超过该分数自动停在结算页（0 = 不设上限）">
+      目标<input id="inTargetScore" type="number" min="0" max="99" value="0" style="width:48px; padding:3px 4px; text-align:center;" />分
+    </span>
+    <button id="btnAutoStop" class="btn-stop" onclick="stopAutoPlay()" style="display:none;">⏹ 停止 (F10)</button>
+    <button id="btnSolve" onclick="solveCurrent()">⚡ 重算</button>
+    <span style="font-size:11px; color:var(--amber); padding:2px 6px; border:1px solid rgba(251,191,36,0.4); border-radius:5px;" title="在游戏或任意窗口按下 F10 或 End 键均可立即急停并释放鼠标">全局急停: F10 / End</span>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- 左侧：实时地图 + 状态微调 -->
+  <div>
+    <div id="statusBar" class="status-bar"></div>
+
+    <div class="card">
+      <div class="card-title">
+        <span>🗺️ 10 格环形路线（点击任意格子可微调，当前方案路径实时叠加）</span>
+        <span id="stageDescTag" style="font-size:12px; color:var(--accent); font-weight:500;"></span>
+      </div>
+      <div class="map-wrap">
+        <svg id="boardSvg" viewBox="0 0 760 330"></svg>
+      </div>
+      <div id="tileEditor" class="tile-editor">
+        <strong id="teTitle">编辑 #0 格</strong>
+        <select id="teRes" onchange="applyTileEdit()"></select>
+        <label><input type="checkbox" id="teX2" onchange="applyTileEdit()" /> ×2收获</label>
+        <label><input type="checkbox" id="teLock" onchange="applyTileEdit()" /> 封锁</label>
+        <label><input type="checkbox" id="teChest" onchange="applyTileEdit()" /> 宝箱</label>
+        <button class="btn-sm btn-primary" onclick="setPlayerHere()">设为当前站位</button>
+        <button class="btn-sm" onclick="closeTileEditor()">关闭</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span>🎛️ 局势参数 & 手牌（修改后自动实时重算）</span>
+        <span id="midTurnHint" style="font-size:12px; color:var(--muted);"></span>
+      </div>
+      <div class="param-grid">
+        <div class="field">
+          <label>当前回合 / 总回合</label>
+          <div style="display:flex; gap:4px;">
+            <input type="number" id="inCurTurn" min="1" max="15" value="1" onchange="onParamChange()" />
+            <input type="number" id="inMaxTurns" min="1" max="15" value="8" onchange="onParamChange()" />
+          </div>
+        </div>
+        <div class="field">
+          <label>已获重建值 / 目标</label>
+          <div style="display:flex; gap:4px;">
+            <input type="number" id="inCurPts" min="0" max="99" value="0" onchange="onParamChange()" />
+            <input type="number" id="inTargetPts" min="1" max="99" value="10" onchange="onParamChange()" />
+          </div>
+        </div>
+        <div class="field">
+          <label>当前基础产出</label>
+          <input type="number" id="inBaseYield" min="1" max="30" value="3" onchange="onParamChange()" />
+        </div>
+        <div class="field">
+          <label>过圈产出加成</label>
+          <select id="inLapBonus" onchange="onParamChange()">
+            <option value="0">无 (+0)</option>
+            <option value="1">第5关 (+1/圈)</option>
+            <option value="2">第10关 (+2/圈)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="inline-row">
+        <label><input type="checkbox" id="inCanCollect" onchange="onParamChange()" /> 已前进可直接首次收集</label>
+        <label>连击中(上一张收集点数):
+          <select id="inLastCollect" onchange="onParamChange()" style="width:78px;">
+            <option value="">无</option>
+            <option value="1">1 (可接2)</option>
+            <option value="2">2 (可接3)</option>
+            <option value="3">3 (可接4)</option>
+            <option value="4">4 (可接5)</option>
+          </select>
+        </label>
+        <label><input type="checkbox" id="inHandScale" onchange="onParamChange()" /> 每2重建值手牌+1(7/8/9关)</label>
+      </div>
+
+      <div style="margin-top:10px;">
+        <div style="font-size:12px; color:var(--muted);">当前手牌（点击某张可移除）：</div>
+        <div id="handChips" class="hand-chips"></div>
+        <div class="add-cards">
+          <button class="btn-sm" onclick="addCard(1)">+ 1</button>
+          <button class="btn-sm" onclick="addCard(2)">+ 2</button>
+          <button class="btn-sm" onclick="addCard(3)">+ 3</button>
+          <button class="btn-sm" onclick="addCard(4)">+ 4</button>
+          <button class="btn-sm" onclick="addCard(5)">+ 5</button>
+          <button class="btn-sm" style="background:#472535;" onclick="clearHand()">清空手牌</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span>📋 右上角 3 条重建计划（采集全共享 · 完成即刷新）</span></div>
+      <div id="questsEditor"></div>
+    </div>
+
+    <div class="card" id="previewCard" style="display:none;">
+      <div class="card-title">
+        <span>📷 最近一次模拟器同步截图</span>
+        <button class="btn-sm" onclick="togglePreview()">展开 / 收起</button>
+      </div>
+      <img id="previewImg" class="preview-img" src="" alt="preview" style="display:none;" />
+    </div>
+  </div>
+
+  <!-- 右侧：最佳策略推荐 -->
+  <div>
+    <div class="card" style="padding:10px 14px;">
+      <div class="card-title" style="margin-bottom:6px;">
+        <span>🎬 OBS 自动录制最高分（仅留破纪录高光，废片自动删）</span>
+        <label style="font-size:12px; color:var(--green); cursor:pointer;">
+          <input type="checkbox" id="obsEnabled" onchange="saveObsSettings()" /> 启用自动录制
+        </label>
+      </div>
+      <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px; font-size:12px;">
+        <input id="obsHost" value="127.0.0.1" onchange="saveObsSettings()" style="width:98px;" title="OBS WebSocket 主机" placeholder="127.0.0.1" />
+        <input id="obsPort" type="number" value="4455" onchange="saveObsSettings()" style="width:68px;" title="端口(默认4455)" />
+        <input id="obsPass" type="password" value="" onchange="saveObsSettings()" style="width:118px;" placeholder="WebSocket 密码" />
+        <label title="单关反复冲分时低于此分的局直接删除；若某局已达到目标分则必留；多关连刷时每关自动保留各自最高分不受此限">单关基准分:
+          <input id="obsMinScore" type="number" min="0" value="0" onchange="saveObsSettings()" style="width:54px;" />
+        </label>
+        <label title="新破纪录时自动删掉之前低分的高光录像">
+          <input type="checkbox" id="obsOnlyBest" checked onchange="saveObsSettings()" /> 只留最高1条
+        </label>
+        <button class="btn-sm" onclick="testObsConn()">🔌 测试连接</button>
+      </div>
+      <div id="obsHint" style="font-size:11px; color:var(--muted); margin-top:5px;">
+        OBS 开启方式：顶部菜单「工具 → WebSocket 服务器设置 → 勾选启用 WebSocket 服务器」，将端口与密码填入上方即可。
+      </div>
+    </div>
+
+    <div class="card" style="padding:10px 14px;">
+      <div class="card-title" style="margin-bottom:6px;">
+        <span>⚡ 凹分剪枝 & 🏆 1~10 关全自动连刷冲榜</span>
+        <button class="btn-sm" onclick="toggleMultiPanel()">展开 / 收起多关连刷</button>
+      </div>
+      <div style="display:flex; flex-wrap:wrap; align-items:center; gap:8px; font-size:12px;">
+        <label style="color:var(--amber); cursor:pointer; font-weight:600;" title="开启后，到指定回合结束时按「等效分 = 已得重建值 + 未完成任务进度折算分」判定，低于门槛自动暂离重开，既省时间又不会误杀刚交大单或差临门一脚的潜力局">
+          <input type="checkbox" id="pruneEnabled" onchange="savePruneSettings()" /> 启用中盘等效分剪枝
+        </label>
+        <span>第 <input id="pruneTurn" type="number" min="1" max="9" value="4" onchange="savePruneSettings()" style="width:46px; padding:3px; text-align:center;" /> 回合结束</span>
+        <span>等效分 &lt; <input id="pruneMinPts" type="number" min="1" max="40" value="9" onchange="savePruneSettings()" style="width:50px; padding:3px; text-align:center;" /> 自动放弃重开</span>
+        <button class="btn-sm" onclick="applyRecommendedPrune()" title="按当前关卡填入推荐剪枝线">套用本关推荐</button>
+      </div>
+
+      <div id="multiStagePanel" style="display:none; margin-top:10px; padding-top:8px; border-top:1px solid var(--border);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; font-size:12px; color:var(--muted);">
+          <span>多关连刷完全使用下表每关独立配置（自动按各关剪枝线重开、每关独立存 OBS 最高分，与上方单关栏互不冲突）：</span>
+          <span style="display:flex; gap:5px;">
+            <button class="btn-sm" onclick="setAllQueue(true)">全选</button>
+            <button class="btn-sm" onclick="setAllQueue(false)">清空</button>
+            <button id="btnQueueStart" class="btn-sm btn-loop" onclick="startMultiQueue()">🏆 启动多关连刷</button>
+          </span>
+        </div>
+        <div id="multiStageRows" style="display:grid; grid-template-columns:repeat(2, 1fr); gap:5px; font-size:12px;"></div>
+      </div>
+    </div>
+
+    <div id="autoLogCard" class="card" style="display:none; border-color:#7c3aed;">
+      <div class="card-title">
+        <span id="autoStatusTitle">🤖 一键自动通关运行中...</span>
+        <button class="btn-sm btn-stop" id="btnAutoStop2" onclick="stopAutoPlay()">⏹ 停止</button>
+      </div>
+      <div id="autoSummaryBar" class="metrics" style="margin-bottom:8px;">
+        <div class="metric-box"><div class="mlabel">已打盘数 / 剪枝</div><div class="mval" id="mRunsDone">0</div></div>
+        <div class="metric-box"><div class="mlabel">当前关最高分</div><div class="mval" id="mBestPts" style="color:var(--amber);">-</div></div>
+        <div class="metric-box"><div class="mlabel">平均得分</div><div class="mval" id="mAvgPts" style="color:var(--accent);">-</div></div>
+        <div class="metric-box"><div class="mlabel">停机 / 队列</div><div class="mval" id="mStopCond" style="font-size:12px; margin-top:5px;">-</div></div>
+      </div>
+      <div id="queuePills" class="score-pills"></div>
+      <div id="bestVideoBanner" style="display:none; font-size:12px; color:#86efac; margin-bottom:7px; background:rgba(34,197,94,0.12); border:1px solid rgba(34,197,94,0.35); padding:5px 9px; border-radius:6px; white-space:pre-line;"></div>
+      <div id="scoreHistoryPills" class="score-pills"></div>
+      <div id="autoLogBox" class="auto-log-box"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span>🏆 本回合最优出牌策略</span>
+        <span id="solveStats" style="font-size:12px; color:var(--muted);">等待同步或计算</span>
+      </div>
+
+      <div id="planTabs" class="tabs"></div>
+
+      <div id="planBody">
+        <div style="padding:36px 16px; text-align:center; color:var(--muted); font-size:14px;">
+          点击右上角 <strong style="color:var(--accent);">「📡 同步模拟器并计算」</strong> 自动读取当前局势，<br/>
+          或者直接在左侧编辑地图、手牌和重建计划来计算最佳策略。
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let META = null;
+let STATE = null;
+let PLANS = [];
+let ACTIVE_PLAN_IDX = 0;
+let EDITING_TILE = null;
+
+const RES_STYLE = {
+  gear:    { label: "齿轮",   icon: "⚙",  color: "#94a3b8" },
+  crystal: { label: "水晶",   icon: "💎", color: "#38bdf8" },
+  wood:    { label: "木头",   icon: "🪵", color: "#a3e635" },
+  flame:   { label: "火苗",   icon: "🔥", color: "#fb923c" },
+  steel:   { label: "工字钢", icon: "🔩", color: "#cbd5e1" },
+};
+
+// 默认10节点可视化坐标 (当手动新建未从模拟器同步时使用)
+const DEFAULT_COORDS = [
+  [650, 190], [565, 272], [440, 245], [320, 252], [220, 232],
+  [120, 155], [205, 110], [325, 75],  [455, 88],  [575, 108]
+];
+
+function setStatus(msg, type = "info") {
+  const el = document.getElementById("statusBar");
+  if (!msg) { el.style.display = "none"; return; }
+  el.className = "status-bar status-" + type;
+  el.textContent = msg;
+  el.style.display = "block";
+}
+
+function buildDefaultState(stageId = 10) {
+  const sm = META.stages[stageId] || META.stages[10];
+  const rset = META.resource_sets[sm.res_set];
+  const defaultResSeq = sm.res_set === "early"
+    ? ["crystal","wood","gear","crystal","gear","crystal","wood","gear","crystal","wood"]
+    : ["crystal","steel","flame","crystal","steel","flame","crystal","steel","flame","flame"];
+  const tiles = defaultResSeq.map((r, i) => ({
+    idx: i, res: r, mult: 1, locked: false, chest: false,
+    cx: DEFAULT_COORDS[i][0] + 220, cy: DEFAULT_COORDS[i][1] + 135
+  }));
+  return {
+    stage_id: stageId,
+    res_types: [...rset],
+    tiles,
+    pos: 0,
+    base_yield: sm.init_base,
+    hand: sm.card_range[1] === 3 ? [1, 2, 2, 3, 3] : [1, 2, 3, 4, 5],
+    quests: [
+      { reward: 4, items: [{ res: rset[0], cur: 0, target: sm.res_set === "late" ? 70 : 20 }, { res: rset[1], cur: 0, target: sm.res_set === "late" ? 70 : 20 }] },
+      { reward: 1, items: [{ res: rset[1], cur: 0, target: sm.res_set === "late" ? 20 : 6 }, { res: rset[2], cur: 0, target: sm.res_set === "late" ? 20 : 6 }] },
+      { reward: 1, items: [{ res: rset[2], cur: 0, target: sm.res_set === "late" ? 30 : 8 }] },
+    ],
+    cur_turn: 1,
+    max_turns: sm.max_turns,
+    cur_pts: 0,
+    target_pts: sm.target_pts,
+    can_collect: false,
+    last_collect: null,
+    lap_bonus: sm.lap_bonus,
+    hand_scale: sm.hand_scale,
+    chest_amount: sm.chest_amount || 15,
+  };
+}
+
+async function initApp() {
+  const res = await fetch("/api/meta");
+  META = await res.json();
+  document.getElementById("adbDevice").value = META.default_device || "127.0.0.1:16384";
+  document.getElementById("pcWindowTitle").value = META.default_pc_window || "明日方舟";
+  try {
+    const savedMode = localStorage.getItem("ark_ctrl_mode");
+    if (savedMode === "pc" || savedMode === "adb") {
+      document.getElementById("ctrlMode").value = savedMode;
+    }
+    const savedWin = localStorage.getItem("ark_pc_window");
+    if (savedWin) document.getElementById("pcWindowTitle").value = savedWin;
+  } catch (e) {}
+  onCtrlModeChange(false);
+
+  const sel = document.getElementById("stageOverride");
+  Object.entries(META.stages).forEach(([id, info]) => {
+    const opt = document.createElement("option");
+    opt.value = id;
+    opt.textContent = `第${id}关 · ${info.name}`;
+    sel.appendChild(opt);
+  });
+  sel.addEventListener("change", () => {
+    if (sel.value && STATE) {
+      const sid = parseInt(sel.value);
+      const sm = META.stages[sid];
+      STATE.stage_id = sid;
+      STATE.lap_bonus = sm.lap_bonus;
+      STATE.hand_scale = sm.hand_scale;
+      STATE.chest_amount = sm.chest_amount || 15;
+      STATE.max_turns = sm.max_turns;
+      STATE.target_pts = sm.target_pts;
+      // 切换关卡下拉框时自动更新单关剪枝推荐线，无需再手动点套用
+      const pr = META.rush_presets && META.rush_presets[sid];
+      if (pr) {
+        document.getElementById("pruneTurn").value = pr.prune_turn;
+        document.getElementById("pruneMinPts").value = pr.prune_min_pts;
+        savePruneSettings();
+      }
+      renderAll();
+      solveCurrent();
+    }
+  });
+
+  STATE = buildDefaultState(10);
+  buildMultiStageRows();
+  loadPruneSettings();
+  renderAll();
+  solveCurrent();
+}
+
+function toggleMultiPanel() {
+  const el = document.getElementById("multiStagePanel");
+  el.style.display = el.style.display === "none" ? "block" : "none";
+}
+
+function buildMultiStageRows() {
+  const box = document.getElementById("multiStageRows");
+  if (!box || !META) return;
+  const presets = META.rush_presets || {};
+  let html = "";
+  for (let sid = 1; sid <= 10; sid++) {
+    const sm = META.stages[sid];
+    const pr = presets[sid] || { target_score: 22, prune_turn: 4, prune_min_pts: 8 };
+    html += `
+      <div style="display:flex; align-items:center; gap:3px; background:var(--panel2); border:1px solid var(--border); border-radius:6px; padding:4px 5px; flex-wrap:nowrap;">
+        <input type="checkbox" id="mq_chk_${sid}" checked />
+        <span style="min-width:60px; font-weight:700; color:#dbeafe; font-size:11px;">S${sid} ${sm.name}</span>
+        <span style="color:var(--muted); font-size:11px;">标</span>
+        <input type="number" id="mq_tgt_${sid}" value="${pr.target_score}" min="0" max="99" title="目标分" style="width:36px; padding:2px; text-align:center; font-size:11px;" />
+        <span style="color:var(--muted); font-size:11px;">盘</span>
+        <input type="number" id="mq_runs_${sid}" value="30" min="0" max="999" title="最多打几盘(0=无限直到达标)" style="width:36px; padding:2px; text-align:center; font-size:11px;" />
+        <label title="自动等效分剪枝：第${pr.prune_turn}回合结束时（已得分+任务进度折算分）低于右侧门槛即自动重开" style="display:inline-flex; align-items:center; gap:2px; color:var(--amber); cursor:pointer; font-size:11px;">
+          <input type="checkbox" id="mq_pr_${sid}" checked />⚡T${pr.prune_turn}&lt;
+        </label>
+        <input type="number" id="mq_prmin_${sid}" value="${pr.prune_min_pts}" min="0" max="40" title="第${pr.prune_turn}回合结束等效分（已得+任务进度）低于此值自动重开" style="width:34px; padding:2px; text-align:center; font-size:11px;" />
+      </div>`;
+  }
+  box.innerHTML = html;
+}
+
+function setAllQueue(val) {
+  for (let sid = 1; sid <= 10; sid++) {
+    const el = document.getElementById(`mq_chk_${sid}`);
+    if (el) el.checked = val;
+  }
+}
+
+function getPruneSettings() {
+  return {
+    enabled: document.getElementById("pruneEnabled").checked,
+    turn: Math.max(1, parseInt(document.getElementById("pruneTurn").value) || 4),
+    min_pts: Math.max(0, parseInt(document.getElementById("pruneMinPts").value) || 8),
+  };
+}
+
+function savePruneSettings() {
+  try { localStorage.setItem("ark_prune_cfg", JSON.stringify(getPruneSettings())); } catch (e) {}
+}
+
+function loadPruneSettings() {
+  try {
+    const raw = localStorage.getItem("ark_prune_cfg");
+    if (!raw) return;
+    const c = JSON.parse(raw);
+    document.getElementById("pruneEnabled").checked = !!c.enabled;
+    if (c.turn) document.getElementById("pruneTurn").value = c.turn;
+    if (c.min_pts !== undefined) document.getElementById("pruneMinPts").value = c.min_pts;
+  } catch (e) {}
+}
+
+function applyRecommendedPrune() {
+  const sid = parseInt(document.getElementById("stageOverride").value) || (STATE && STATE.stage_id) || 10;
+  const pr = (META && META.rush_presets && META.rush_presets[sid]) || { prune_turn: 4, prune_min_pts: 8, target_score: 24 };
+  document.getElementById("pruneTurn").value = pr.prune_turn;
+  document.getElementById("pruneMinPts").value = pr.prune_min_pts;
+  document.getElementById("pruneEnabled").checked = true;
+  if (!parseInt(document.getElementById("inTargetScore").value)) {
+    document.getElementById("inTargetScore").value = pr.target_score;
+  }
+  savePruneSettings();
+  setStatus(`已套用第 ${sid} 关推荐剪枝线：第 ${pr.prune_turn} 回合结束 < ${pr.prune_min_pts} 分自动放弃重开`, "info");
+}
+
+function mapCoordToSvg(t, idx) {
+  if (t.cx && t.cy && t.cx > 100 && t.cy > 100) {
+    // 1280x720 map ROI roughly x: 220..950, y: 150..450 -> SVG 760x330
+    const sx = ((t.cx - 210) / 760) * 700 + 30;
+    const sy = ((t.cy - 140) / 315) * 280 + 25;
+    return [Math.max(38, Math.min(722, sx)), Math.max(36, Math.min(294, sy))];
+  }
+  return DEFAULT_COORDS[idx];
+}
+
+function renderMapSvg() {
+  const svg = document.getElementById("boardSvg");
+  const pts = STATE.tiles.map((t, i) => mapCoordToSvg(t, i));
+  let html = `
+    <defs>
+      <marker id="arrowRoute" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8" />
+      </marker>
+      <marker id="arrowStep" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M 0 1 L 10 5 L 0 9 z" fill="#fbbf24" />
+      </marker>
+    </defs>
+  `;
+
+  // 底层环形轨道连线
+  for (let i = 0; i < 10; i++) {
+    const [x1, y1] = pts[i];
+    const [x2, y2] = pts[(i + 1) % 10];
+    const dx = x2 - x1, dy = y2 - y1;
+    const len = Math.hypot(dx, dy) || 1;
+    const sx = x1 + (dx / len) * 26, sy = y1 + (dy / len) * 26;
+    const ex = x2 - (dx / len) * 28, ey = y2 - (dy / len) * 28;
+    html += `<line x1="${sx}" y1="${sy}" x2="${ex}" y2="${ey}" stroke="#334c75" stroke-width="2.5" stroke-dasharray="5,4" marker-end="url(#arrowRoute)" />`;
+  }
+
+  // 叠加当前选中方案的移动箭头与采集标记
+  const plan = PLANS[ACTIVE_PLAN_IDX];
+  const nodeBadges = Array.from({ length: 10 }, () => []);
+  if (plan && plan.steps) {
+    plan.steps.forEach((st) => {
+      if (st.action === "end_turn") return;
+      if (st.action === "advance") {
+        const [x1, y1] = pts[st.from_pos];
+        const [x2, y2] = pts[st.to_pos];
+        // 微微弧线偏移避免重叠
+        const mx = (x1 + x2) / 2 - (y2 - y1) * 0.14;
+        const my = (y1 + y2) / 2 + (x2 - x1) * 0.14;
+        html += `<path d="M ${x1} ${y1} Q ${mx} ${my} ${x2} ${y2}" fill="none" stroke="#fbbf24" stroke-width="3" stroke-opacity="0.88" marker-end="url(#arrowStep)" />`;
+        html += `<circle cx="${mx}" cy="${my}" r="10" fill="#b45309" stroke="#fde68a" stroke-width="1.5"/>`;
+        html += `<text x="${mx}" y="${my + 4}" text-anchor="middle" fill="#fff" font-size="11" font-weight="800">${st.step_no}</text>`;
+      } else {
+        nodeBadges[st.to_pos].push(`${st.step_no}:${st.action === "combo" ? "C+" : "采"}${st.card}`);
+      }
+    });
+  }
+
+  // 绘制10个节点
+  STATE.tiles.forEach((t, i) => {
+    const [x, y] = pts[i];
+    const rs = RES_STYLE[t.res] || { label: t.res, icon: "?", color: "#fff" };
+    const isPlayer = STATE.pos === i;
+    const isEditing = EDITING_TILE === i;
+    const strokeCol = isEditing ? "#38bdf8" : (isPlayer ? "#60a5fa" : (t.locked ? "#ef4444" : "#475569"));
+    const fillCol = t.locked ? "#3b1720" : (isPlayer ? "#1e3a5f" : "#152238");
+
+    html += `<g style="cursor:pointer;" onclick="openTileEditor(${i})">`;
+    if (isPlayer) {
+      html += `<circle cx="${x}" cy="${y}" r="31" fill="rgba(56, 189, 248, 0.22)" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="4,3"/>`;
+    }
+    html += `<circle cx="${x}" cy="${y}" r="23" fill="${fillCol}" stroke="${strokeCol}" stroke-width="${isPlayer ? 3 : 2}" />`;
+    // 格子编号
+    html += `<circle cx="${x - 19}" cy="${y - 18}" r="9" fill="#0f172a" stroke="#475569" stroke-width="1"/>`;
+    html += `<text x="${x - 19}" y="${y - 14.5}" text-anchor="middle" fill="#cbd5e1" font-size="10" font-weight="700">${i}</text>`;
+    // 资源名
+    html += `<text x="${x}" y="${y - 1}" text-anchor="middle" fill="${rs.color}" font-size="14">${rs.icon}</text>`;
+    html += `<text x="${x}" y="${y + 14}" text-anchor="middle" fill="#e2e8f0" font-size="10" font-weight="700">${rs.label}</text>`;
+
+    // 火车站 0 号标识
+    if (i === 0) {
+      html += `<text x="${x}" y="${y + 34}" text-anchor="middle" fill="#93c5fd" font-size="10" font-weight="700">🚂 火车站起点</text>`;
+    }
+    // 封锁红斜杠
+    if (t.locked) {
+      html += `<line x1="${x - 16}" y1="${y - 16}" x2="${x + 16}" y2="${y + 16}" stroke="#f87171" stroke-width="3.2" stroke-linecap="round"/>`;
+    }
+    // ×2 徽章
+    if (t.mult > 1) {
+      html += `<rect x="${x + 14}" y="${y - 25}" width="26" height="16" rx="4" fill="#2563eb" stroke="#93c5fd" stroke-width="1"/>`;
+      html += `<text x="${x + 27}" y="${y - 13.5}" text-anchor="middle" fill="#fff" font-size="10" font-weight="800">×${t.mult}</text>`;
+    }
+    // 宝箱徽章
+    if (t.chest) {
+      html += `<rect x="${x + 14}" y="${y + 7}" width="26" height="17" rx="4" fill="#0891b2" stroke="#67e8f9" stroke-width="1"/>`;
+      html += `<text x="${x + 27}" y="${y + 19}" text-anchor="middle" fill="#fff" font-size="11">🎁</text>`;
+    }
+    // 当前方案在此格的采集步骤标签
+    if (nodeBadges[i].length > 0) {
+      const txt = nodeBadges[i].join(" ");
+      const w = Math.max(44, txt.length * 6.8 + 10);
+      html += `<rect x="${x - w/2}" y="${y - 43}" width="${w}" height="17" rx="5" fill="#059669" stroke="#a7f3d0" stroke-width="1"/>`;
+      html += `<text x="${x}" y="${y - 31}" text-anchor="middle" fill="#fff" font-size="10" font-weight="800">${txt}</text>`;
+    }
+    html += `</g>`;
+  });
+
+  svg.innerHTML = html;
+}
+
+function openTileEditor(idx) {
+  EDITING_TILE = idx;
+  const t = STATE.tiles[idx];
+  const box = document.getElementById("tileEditor");
+  document.getElementById("teTitle").textContent = `编辑 #${idx} 格${idx === 0 ? "(火车站)" : ""}`;
+  const sel = document.getElementById("teRes");
+  sel.innerHTML = "";
+  STATE.res_types.forEach(r => {
+    const opt = document.createElement("option");
+    opt.value = r;
+    opt.textContent = (RES_STYLE[r]?.icon || "") + " " + (RES_STYLE[r]?.label || r);
+    if (r === t.res) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  document.getElementById("teX2").checked = t.mult > 1;
+  document.getElementById("teLock").checked = !!t.locked;
+  document.getElementById("teChest").checked = !!t.chest;
+  box.classList.add("show");
+  renderMapSvg();
+}
+
+function applyTileEdit() {
+  if (EDITING_TILE === null) return;
+  const t = STATE.tiles[EDITING_TILE];
+  t.res = document.getElementById("teRes").value;
+  t.mult = document.getElementById("teX2").checked ? 2 : 1;
+  t.locked = document.getElementById("teLock").checked;
+  t.chest = document.getElementById("teChest").checked;
+  renderMapSvg();
+  solveCurrent();
+}
+
+function setPlayerHere() {
+  if (EDITING_TILE === null) return;
+  STATE.pos = EDITING_TILE;
+  renderMapSvg();
+  solveCurrent();
+}
+
+function closeTileEditor() {
+  EDITING_TILE = null;
+  document.getElementById("tileEditor").classList.remove("show");
+  renderMapSvg();
+}
+
+function renderParamsAndHand() {
+  const sm = META.stages[STATE.stage_id] || META.stages[1];
+  document.getElementById("stageDescTag").textContent = `第${STATE.stage_id}关 · ${sm.name}（${sm.desc}）`;
+  document.getElementById("inCurTurn").value = STATE.cur_turn;
+  document.getElementById("inMaxTurns").value = STATE.max_turns;
+  document.getElementById("inCurPts").value = STATE.cur_pts;
+  document.getElementById("inTargetPts").value = STATE.target_pts;
+  document.getElementById("inBaseYield").value = STATE.base_yield;
+  document.getElementById("inLapBonus").value = String(STATE.lap_bonus || 0);
+  document.getElementById("inCanCollect").checked = !!STATE.can_collect;
+  document.getElementById("inLastCollect").value = STATE.last_collect ? String(STATE.last_collect) : "";
+  document.getElementById("inHandScale").checked = !!STATE.hand_scale;
+
+  const hc = document.getElementById("handChips");
+  if (!STATE.hand.length) {
+    hc.innerHTML = `<span style="color:var(--muted); font-size:13px;">当前无手牌（可点「结束回合」进入下一回合）</span>`;
+  } else {
+    hc.innerHTML = STATE.hand.map((v, i) => {
+      const isCombo = STATE.last_collect && v === STATE.last_collect + 1;
+      return `<div class="hand-chip ${isCombo ? "combo" : ""}" onclick="removeCard(${i})" title="点击移除">
+        ${isCombo ? '<span class="combo-tag">COMBO+</span>' : ''}
+        ${v}
+      </div>`;
+    }).join("");
+  }
+}
+
+function onParamChange() {
+  STATE.cur_turn = parseInt(document.getElementById("inCurTurn").value) || 1;
+  STATE.max_turns = parseInt(document.getElementById("inMaxTurns").value) || 8;
+  STATE.cur_pts = parseInt(document.getElementById("inCurPts").value) || 0;
+  STATE.target_pts = parseInt(document.getElementById("inTargetPts").value) || 10;
+  STATE.base_yield = Math.max(1, parseInt(document.getElementById("inBaseYield").value) || 1);
+  STATE.lap_bonus = parseInt(document.getElementById("inLapBonus").value) || 0;
+  STATE.can_collect = document.getElementById("inCanCollect").checked;
+  const lc = document.getElementById("inLastCollect").value;
+  STATE.last_collect = lc ? parseInt(lc) : null;
+  STATE.hand_scale = document.getElementById("inHandScale").checked;
+  renderParamsAndHand();
+  solveCurrent();
+}
+
+function addCard(v) {
+  if (STATE.hand.length >= 9) return;
+  STATE.hand.push(v);
+  STATE.hand.sort((a, b) => a - b);
+  renderParamsAndHand();
+  solveCurrent();
+}
+
+function removeCard(idx) {
+  STATE.hand.splice(idx, 1);
+  renderParamsAndHand();
+  solveCurrent();
+}
+
+function clearHand() {
+  STATE.hand = [];
+  renderParamsAndHand();
+  solveCurrent();
+}
+
+function renderQuests() {
+  const box = document.getElementById("questsEditor");
+  box.innerHTML = STATE.quests.map((q, qi) => {
+    // 每条计划显示2个槽位（第2槽可留空 target=0）
+    const slotHtml = [0, 1].map(si => {
+      const it = q.items[si] || { res: STATE.res_types[si % 3], cur: 0, target: 0 };
+      const opts = STATE.res_types.map(r =>
+        `<option value="${r}" ${r === it.res ? "selected" : ""}>${RES_STYLE[r]?.label || r}</option>`
+      ).join("");
+      return `<div class="q-item-edit">
+        <select onchange="updateQuestItem(${qi},${si},'res',this.value)">${opts}</select>
+        <input type="number" min="0" value="${it.cur}" onchange="updateQuestItem(${qi},${si},'cur',this.value)" title="当前进度"/>
+        <span style="color:var(--muted);">/</span>
+        <input type="number" min="0" value="${it.target}" onchange="updateQuestItem(${qi},${si},'target',this.value)" title="目标(填0表示无此项)"/>
+      </div>`;
+    }).join("");
+    return `<div class="quest-row">
+      <div class="quest-badge ${q.reward >= 4 ? "big" : ""}">×${q.reward}</div>
+      ${slotHtml}
+    </div>`;
+  }).join("");
+}
+
+function updateQuestItem(qi, si, field, val) {
+  const q = STATE.quests[qi];
+  while (q.items.length <= si) {
+    q.items.push({ res: STATE.res_types[q.items.length % 3], cur: 0, target: 0 });
+  }
+  if (field === "res") q.items[si].res = val;
+  else q.items[si][field] = Math.max(0, parseInt(val) || 0);
+  // 清理 target=0 的尾部空项用于求解
+  solveCurrent();
+}
+
+function renderPlans(stats) {
+  if (stats) {
+    document.getElementById("solveStats").textContent =
+      `已精确搜索 ${stats.nodes} 状态 · 耗时 ${stats.elapsed_ms} ms${stats.timed_out ? " (截断)" : ""}`;
+  }
+  const tabs = document.getElementById("planTabs");
+  const body = document.getElementById("planBody");
+
+  if (!PLANS || PLANS.length === 0) {
+    tabs.innerHTML = "";
+    body.innerHTML = `
+      <div style="padding:28px 16px; text-align:center; color:var(--muted);">
+        当前手牌已全部打完！<br/><br/>
+        <button class="btn-green" onclick="endTurnInEmulator()">⏭ 在模拟器结束回合并同步下一回合</button>
+      </div>`;
+    renderMapSvg();
+    return;
+  }
+
+  if (ACTIVE_PLAN_IDX >= PLANS.length) ACTIVE_PLAN_IDX = 0;
+
+  tabs.innerHTML = PLANS.map((p, idx) => `
+    <button class="tab-btn ${idx === ACTIVE_PLAN_IDX ? "active" : ""}" onclick="selectPlan(${idx})">
+      <div style="font-size:13px; font-weight:800;">方案 #${p.rank}${idx === 0 ? " (推荐)" : ""}</div>
+      <div style="font-size:11px; margin-top:2px;">重建值 +${p.expected_pts} | 综合 ${p.score}</div>
+    </button>
+  `).join("");
+
+  const p = PLANS[ACTIVE_PLAN_IDX];
+  const gainTags = Object.entries(p.total_gained)
+    .filter(([, v]) => v > 0)
+    .map(([r, v]) => `${RES_STYLE[r]?.icon || ""}${RES_STYLE[r]?.label || r} +${v}`)
+    .join(" / ") || "无直接采集";
+
+  const resyncHtml = p.first_resync_step
+    ? `<div class="resync-banner">
+         ⚡ <strong>动态重算建议：</strong>第 <strong>${p.first_resync_step}</strong> 步将完成重建计划（立刻刷新新计划）或开启随机宝箱！<br/>
+         建议先执行前 <strong>${p.first_resync_step}</strong> 步，然后重新同步，基于最新计划计算剩余手牌的最优解。
+       </div>`
+    : "";
+
+  const execUntilCount = p.first_resync_step || p.steps.length;
+  const execUntilLabel = p.first_resync_step
+    ? `⏩ 执行前 ${execUntilCount} 步并自动重算`
+    : `⏩ 执行本方案全部 ${execUntilCount} 步`;
+
+  const stepsHtml = p.steps.map(s => {
+    const cls = s.action === "combo" ? "act-combo" : (s.action === "collect" ? "act-collect" : "act-adv");
+    const tag = s.action === "end_turn"
+      ? `<span class="tag tag-pts">提前结束回合</span>`
+      : (s.action === "combo"
+        ? `<span class="tag tag-combo">COMBO+ [${s.card}]</span>`
+        : (s.action === "collect"
+          ? `<span class="tag tag-col">收集资源 [${s.card}]</span>`
+          : `<span class="tag tag-adv">前进 ${s.card} 格</span>`));
+    const ptsBadge = s.pts_gained > 0 ? `<span class="tag tag-pts">+${s.pts_gained} 重建值</span>` : "";
+    return `<div class="step-item ${cls} ${s.needs_resync ? "resync-point" : ""}">
+      <div class="step-num">${s.step_no}</div>
+      <div style="flex:1; font-size:13px; line-height:1.5;">
+        <div>${tag}${ptsBadge}</div>
+        <div style="color:#dbeafe; margin-top:2px;">${s.note}</div>
+      </div>
+    </div>`;
+  }).join("");
+
+  const qPreviewHtml = p.final_quests.map(fq => {
+    const itemsStr = fq.items.map(it =>
+      `${RES_STYLE[it.res]?.icon || ""}${it.label}: <span style="color:var(--muted)">${it.before}</span> → <strong style="color:${it.after >= it.target ? "var(--green)" : "#fff"}">${it.after}/${it.target}</strong>`
+    ).join(" &nbsp;|&nbsp; ");
+    return `<div class="prog-row">
+      <span><span class="tag ${fq.reward >= 4 ? "tag-pts" : "tag-adv"}">计划${fq.index + 1} ×${fq.reward}</span> ${itemsStr}</span>
+      <span style="font-weight:700; color:${fq.completed ? "var(--green)" : "var(--muted)"};">${fq.completed ? "✅ 完成" : "推进中"}</span>
+    </div>`;
+  }).join("");
+
+  body.innerHTML = `
+    <div class="metrics">
+      <div class="metric-box">
+        <div class="mlabel">预计获得重建值</div>
+        <div class="mval" style="color:var(--amber);">+${p.expected_pts}</div>
+        <div style="font-size:11px; color:var(--muted);">确定 +${p.guaranteed_pts}${p.chests_count ? ` · 含${p.chests_count}宝箱` : ""}</div>
+      </div>
+      <div class="metric-box">
+        <div class="mlabel">未完成进度折算</div>
+        <div class="mval" style="color:var(--accent);">+${p.progress_value}</div>
+        <div style="font-size:11px; color:var(--muted);">末位 ${p.end_pos}号格</div>
+      </div>
+      <div class="metric-box">
+        <div class="mlabel">过圈 / 产出成长</div>
+        <div class="mval" style="color:var(--green);">${p.laps_count} 圈</div>
+        <div style="font-size:11px; color:var(--muted);">末态基础产出 ${p.end_base_yield}</div>
+      </div>
+      <div class="metric-box">
+        <div class="mlabel">本回合确定采集</div>
+        <div style="font-size:12px; font-weight:700; margin-top:5px; line-height:1.4;">${gainTags}</div>
+      </div>
+    </div>
+
+    ${resyncHtml}
+
+    <div class="exec-bar">
+      <button class="btn-green" onclick="execStepsInEmulator(1)">▶ 在模拟器执行第 1 步</button>
+      <button class="btn-amber" onclick="execStepsInEmulator(${execUntilCount})">${execUntilLabel}</button>
+    </div>
+
+    <div class="step-list">${stepsHtml}</div>
+
+    <div class="prog-preview">
+      <div style="font-size:12px; color:var(--muted); margin-bottom:4px;">执行完本方案后的已知计划进度（不含宝箱随机收益）：</div>
+      ${qPreviewHtml}
+    </div>
+  `;
+
+  renderMapSvg();
+}
+
+function selectPlan(idx) {
+  ACTIVE_PLAN_IDX = idx;
+  renderPlans();
+}
+
+function renderAll() {
+  renderMapSvg();
+  renderParamsAndHand();
+  renderQuests();
+}
+
+async function solveCurrent() {
+  const resp = await fetch("/api/solve", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ state: STATE, top_k: 3 }),
+  });
+  const data = await resp.json();
+  if (!data.ok) {
+    setStatus("求解失败: " + data.error, "err");
+    return;
+  }
+  PLANS = data.plans;
+  ACTIVE_PLAN_IDX = 0;
+  renderPlans(data.stats);
+}
+
+function getClientPayload() {
+  const ctrlMode = document.getElementById("ctrlMode").value;
+  const winTitle = document.getElementById("pcWindowTitle").value.trim() || "明日方舟";
+  try {
+    localStorage.setItem("ark_ctrl_mode", ctrlMode);
+    localStorage.setItem("ark_pc_window", winTitle);
+  } catch (e) {}
+  return {
+    ctrl_mode: ctrlMode,
+    device: document.getElementById("adbDevice").value.trim(),
+    window_title: winTitle,
+    stage_hint: document.getElementById("stageOverride").value || null,
+  };
+}
+
+function onCtrlModeChange(doScan = true) {
+  const m = document.getElementById("ctrlMode").value;
+  document.getElementById("adbDevice").style.display = m === "adb" ? "inline-block" : "none";
+  document.getElementById("pcWinWrap").style.display = m === "pc" ? "inline-flex" : "none";
+  try { localStorage.setItem("ark_ctrl_mode", m); } catch (e) {}
+  if (m === "pc" && doScan) {
+    refreshPcWindows();
+  }
+}
+
+async function refreshPcWindows() {
+  try {
+    const resp = await fetch("/api/pc/windows");
+    const data = await resp.json();
+    if (!data.ok) return;
+    const dl = document.getElementById("pcWindowList");
+    dl.innerHTML = (data.windows || []).map(w => `<option value="${w.title}">${w.title} (${w.width}x${w.height})</option>`).join("");
+    const ark = (data.windows || []).find(w => /明日方舟|arknights/i.test(w.title));
+    if (ark) {
+      document.getElementById("pcWindowTitle").value = ark.title;
+      setStatus(`🖥️ 已发现 PC 端窗口：「${ark.title}」(${ark.width}×${ark.height})` + (data.is_admin ? "（管理员权限已就绪）" : "（提醒：若游戏点击无反应，请用 start_admin.bat 管理员身份启动）"), data.is_admin ? "info" : "warn");
+    } else {
+      setStatus(`已扫描 ${(data.windows || []).length} 个桌面窗口（可在输入框下拉选择，建议将游戏设为 16:9 窗口化或无边框）`, "info");
+    }
+  } catch (e) {}
+}
+
+async function syncFromEmulator() {
+  const btn = document.getElementById("btnSync");
+  btn.disabled = true;
+  btn.textContent = "⏳ 识别中...";
+  setStatus("正在抓取游戏画面并识别局势...", "info");
+  try {
+    const resp = await fetch("/api/sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(getClientPayload()),
+    });
+    const data = await resp.json();
+    if (!data.ok) {
+      setStatus("同步失败: " + data.error, "err");
+      return;
+    }
+    if (data.mode === "stage_select") {
+      document.getElementById("stageOverride").value = String(data.detected_stage_id);
+      if (data.preview) {
+        document.getElementById("previewCard").style.display = "block";
+        document.getElementById("previewImg").src = data.preview;
+      }
+      setStatus(`已从选关界面锁定：第 ${data.detected_stage_id} 关「${data.stage_name}」（${data.stage_desc}）。进入关卡后再点一次「同步模拟器并计算」即可！`, "info");
+      return;
+    }
+    STATE = data.state;
+    PLANS = data.plans;
+    ACTIVE_PLAN_IDX = 0;
+    if (data.preview) {
+      document.getElementById("previewCard").style.display = "block";
+      document.getElementById("previewImg").src = data.preview;
+    }
+    renderAll();
+    renderPlans(data.stats);
+    if (data.meta && data.meta.yield_warning) {
+      setStatus("同步成功（注意：" + data.meta.yield_warning + "）", "warn");
+    } else {
+      setStatus(`同步成功！第${STATE.stage_id}关 · 回合 ${STATE.cur_turn}/${STATE.max_turns} · 手牌 [${STATE.hand.join(",")}] · 求解耗时 ${data.stats.elapsed_ms} ms`, "info");
+    }
+  } catch (e) {
+    setStatus("请求异常: " + e, "err");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "📡 同步";
+  }
+}
+
+async function execStepsInEmulator(count) {
+  const plan = PLANS[ACTIVE_PLAN_IDX];
+  if (!plan || !plan.steps.length) return;
+  const toRun = plan.steps.slice(0, count).map(s => ({ action: s.action, card: s.card }));
+  setStatus(`正在按序执行 ${toRun.length} 步，完成后自动重算...`, "info");
+  try {
+    const resp = await fetch("/api/exec_steps", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...getClientPayload(),
+        steps: toRun,
+      }),
+    });
+    const data = await resp.json();
+    if (!data.ok) {
+      setStatus("执行失败: " + data.error, "err");
+      return;
+    }
+    STATE = data.state;
+    PLANS = data.plans;
+    ACTIVE_PLAN_IDX = 0;
+    if (data.preview) {
+      document.getElementById("previewCard").style.display = "block";
+      document.getElementById("previewImg").src = data.preview;
+    }
+    renderAll();
+    renderPlans(data.stats);
+    setStatus(`已执行 ${data.executed} 步并重新同步！剩余手牌 [${STATE.hand.join(",")}]`, "info");
+  } catch (e) {
+    setStatus("执行异常: " + e, "err");
+  }
+}
+
+async function endTurnInEmulator() {
+  setStatus("正在点击「结束回合」并等待下一回合发牌...", "info");
+  try {
+    const resp = await fetch("/api/end_turn", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(getClientPayload()),
+    });
+    const data = await resp.json();
+    if (!data.ok) {
+      setStatus("结束回合失败: " + data.error, "err");
+      return;
+    }
+    STATE = data.state;
+    PLANS = data.plans;
+    ACTIVE_PLAN_IDX = 0;
+    if (data.preview) {
+      document.getElementById("previewCard").style.display = "block";
+      document.getElementById("previewImg").src = data.preview;
+    }
+    renderAll();
+    renderPlans(data.stats);
+    setStatus(`已进入第 ${STATE.cur_turn}/${STATE.max_turns} 回合，新最优策略已就绪！`, "info");
+  } catch (e) {
+    setStatus("结束回合异常: " + e, "err");
+  }
+}
+
+function togglePreview() {
+  const img = document.getElementById("previewImg");
+  img.style.display = img.style.display === "none" ? "block" : "none";
+}
+
+let AUTO_TIMER = null;
+
+function getObsSettings() {
+  return {
+    enabled: document.getElementById("obsEnabled").checked,
+    host: document.getElementById("obsHost").value.trim() || "127.0.0.1",
+    port: parseInt(document.getElementById("obsPort").value) || 4455,
+    password: document.getElementById("obsPass").value || "",
+    min_keep_score: Math.max(0, parseInt(document.getElementById("obsMinScore").value) || 0),
+    keep_only_best: document.getElementById("obsOnlyBest").checked,
+  };
+}
+
+function saveObsSettings() {
+  try { localStorage.setItem("ark_obs_cfg", JSON.stringify(getObsSettings())); } catch (e) {}
+}
+
+function loadObsSettings() {
+  try {
+    const raw = localStorage.getItem("ark_obs_cfg");
+    if (!raw) return;
+    const c = JSON.parse(raw);
+    document.getElementById("obsEnabled").checked = !!c.enabled;
+    if (c.host) document.getElementById("obsHost").value = c.host;
+    if (c.port) document.getElementById("obsPort").value = c.port;
+    if (c.password !== undefined) document.getElementById("obsPass").value = c.password;
+    if (c.min_keep_score !== undefined) document.getElementById("obsMinScore").value = c.min_keep_score;
+    if (c.keep_only_best !== undefined) document.getElementById("obsOnlyBest").checked = !!c.keep_only_best;
+  } catch (e) {}
+}
+
+async function testObsConn() {
+  const hint = document.getElementById("obsHint");
+  hint.style.color = "#bae6fd";
+  hint.textContent = "正在连接 OBS WebSocket...";
+  const cfg = getObsSettings();
+  saveObsSettings();
+  try {
+    const resp = await fetch("/api/obs/test", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(cfg),
+    });
+    const data = await resp.json();
+    if (data.ok) {
+      hint.style.color = "#86efac";
+      hint.textContent = `✅ 连接成功！OBS v${data.info.obs_version}（当前${data.info.recording ? "正在录制" : "空闲待命"}），勾选上方「启用自动录制」即可自动留存最高分视频。`;
+    } else {
+      hint.style.color = "#fca5a5";
+      hint.textContent = `❌ 连接失败：${data.error}（请确认 OBS 中已开启「工具 → WebSocket 服务器设置 → 启用 WebSocket 服务器」并核对端口和密码）`;
+    }
+  } catch (e) {
+    hint.style.color = "#fca5a5";
+    hint.textContent = "❌ 请求异常：" + e;
+  }
+}
+
+async function startAutoPlay(mode = 1, customQueue = null) {
+  const startBtn = document.getElementById("btnAutoStart");
+  const loopBtn = document.getElementById("btnLoopStart");
+  const queueBtn = document.getElementById("btnQueueStart");
+  const stopBtn = document.getElementById("btnAutoStop");
+  const syncBtn = document.getElementById("btnSync");
+  const maxRuns = mode === "loop" ? Math.max(0, parseInt(document.getElementById("inMaxRuns").value) || 0) : 1;
+  const targetScore = mode === "loop" ? Math.max(0, parseInt(document.getElementById("inTargetScore").value) || 0) : 0;
+  const obsCfg = getObsSettings();
+  const pruneCfg = getPruneSettings();
+  saveObsSettings();
+  savePruneSettings();
+  try {
+    const resp = await fetch("/api/auto/start", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...getClientPayload(),
+        max_runs: maxRuns,
+        target_score: targetScore,
+        obs: obsCfg,
+        prune: mode === "loop" ? pruneCfg : { enabled: false },
+        stage_queue: customQueue || [],
+      }),
+    });
+    const data = await resp.json();
+    if (!data.ok) {
+      setStatus("启动自动模式失败: " + data.error, "err");
+      return;
+    }
+    startBtn.style.display = "none";
+    loopBtn.style.display = "none";
+    if (queueBtn) queueBtn.disabled = true;
+    stopBtn.style.display = "inline-block";
+    syncBtn.disabled = true;
+    document.getElementById("autoLogCard").style.display = "block";
+    document.getElementById("btnAutoStop2").style.display = "inline-block";
+    const desc = customQueue
+      ? `多关连刷冲榜（共 ${customQueue.length} 关）`
+      : (maxRuns === 1 ? "单局全自动通关" : (maxRuns === 0 ? "无限循环反复冲高分" : `打 ${maxRuns} 盘冲高分`));
+    setStatus(`🚀 已启动「${desc}」${!customQueue && targetScore > 0 ? `（达到 ≥${targetScore} 分自动停）` : ""}，随时按 F10 或 End 全局急停！`, "info");
+    if (AUTO_TIMER) clearInterval(AUTO_TIMER);
+    AUTO_TIMER = setInterval(pollAutoStatus, 900);
+    pollAutoStatus();
+  } catch (e) {
+    setStatus("启动异常: " + e, "err");
+  }
+}
+
+function startMultiQueue() {
+  const queue = [];
+  const presets = (META && META.rush_presets) || {};
+  for (let sid = 1; sid <= 10; sid++) {
+    const chk = document.getElementById(`mq_chk_${sid}`);
+    if (chk && chk.checked) {
+      const pr = presets[sid] || { prune_turn: 4, prune_min_pts: 8 };
+      queue.push({
+        stage_id: sid,
+        target_score: Math.max(0, parseInt(document.getElementById(`mq_tgt_${sid}`).value) || 0),
+        max_runs: Math.max(0, parseInt(document.getElementById(`mq_runs_${sid}`).value) || 0),
+        prune_enabled: !!document.getElementById(`mq_pr_${sid}`).checked,
+        prune_turn: pr.prune_turn,
+        prune_min_pts: Math.max(0, parseInt(document.getElementById(`mq_prmin_${sid}`).value) || pr.prune_min_pts),
+      });
+    }
+  }
+  if (!queue.length) {
+    setStatus("请至少勾选 1 个关卡再启动多关连刷！", "warn");
+    return;
+  }
+  startAutoPlay("queue", queue);
+}
+
+async function stopAutoPlay() {
+  try {
+    await fetch("/api/auto/stop", { method: "POST" });
+    setStatus("已发送停止指令，等待当前动作安全完成...", "warn");
+  } catch (e) {
+    setStatus("停止请求异常: " + e, "err");
+  }
+}
+
+async function pollAutoStatus() {
+  try {
+    const resp = await fetch("/api/auto/status");
+    const data = await resp.json();
+    if (!data.ok) return;
+    const st = data.status;
+
+    const logBox = document.getElementById("autoLogBox");
+    logBox.textContent = (st.logs || []).join("\n");
+    logBox.scrollTop = logBox.scrollHeight;
+
+    // 刷新刷分统计仪表盘
+    const maxR = st.max_runs;
+    const prCnt = st.pruned_runs || 0;
+    document.getElementById("mRunsDone").textContent =
+      (maxR > 0 ? `${st.runs_done}/${maxR}` : `${st.runs_done}/∞`) + (prCnt > 0 ? ` (⚡${prCnt})` : "");
+    document.getElementById("mBestPts").textContent = st.runs_done > 0 ? `${st.best_pts} 分` : "-";
+    document.getElementById("mAvgPts").textContent = st.history && st.history.length > 0 ? `${st.avg_pts} 分` : "-";
+    const qInfo = st.queue_info || [];
+    const qTag = qInfo.length > 1 ? `队列 ${st.queue_idx + 1}/${qInfo.length} · ` : "";
+    document.getElementById("mStopCond").textContent =
+      qTag + (st.target_score > 0 ? `≥${st.target_score}分` : (maxR === 0 ? "手动停" : `打${maxR}盘`));
+
+    const qp = document.getElementById("queuePills");
+    if (qInfo.length > 1) {
+      qp.innerHTML = qInfo.map((q, qi) => {
+        const cls = q.status === "done" ? "best" : (qi === st.queue_idx ? "score-pill" : "score-pill");
+        const icon = q.status === "done" ? "✅" : (qi === st.queue_idx ? "▶" : "⏳");
+        return `<span class="score-pill ${cls}" style="${qi === st.queue_idx ? "border-color:var(--accent); color:#fff;" : ""}">${icon} S${q.stage_id}: ${q.best_pts || 0}/${q.target_score}分 (${q.runs}盘)</span>`;
+      }).join("");
+    } else {
+      qp.innerHTML = "";
+    }
+
+    const bv = document.getElementById("bestVideoBanner");
+    const savedList = st.saved_videos || [];
+    if (savedList.length > 0) {
+      bv.style.display = "block";
+      bv.textContent = savedList.map(v => `🎬 S${String(v.stage_id).padStart(2, "0")}「${v.stage_name}」${v.pts}分：${v.path}`).join("\n");
+    } else if (st.best_video_path) {
+      bv.style.display = "block";
+      bv.textContent = "🎬 已珍藏最高分录像：" + st.best_video_path;
+    } else {
+      bv.style.display = "none";
+    }
+
+    const pills = document.getElementById("scoreHistoryPills");
+    if (st.history && st.history.length > 0) {
+      pills.innerHTML = st.history.map(h =>
+        `<span class="score-pill ${h.pts === st.best_pts && h.stage_id === st.stage_id ? "best" : ""}" title="${h.time} S${h.stage_id} ${h.eval}">S${h.stage_id}#${h.stage_run || h.run}: ${h.pts}分</span>`
+      ).join("");
+    } else {
+      pills.innerHTML = "";
+    }
+
+    if (st.stage_id) {
+      document.getElementById("stageOverride").value = String(st.stage_id);
+    }
+    if (st.state) {
+      STATE = st.state;
+      PLANS = st.plans || [];
+      ACTIVE_PLAN_IDX = 0;
+      renderAll();
+      renderPlans(st.stats);
+    }
+    if (st.preview) {
+      document.getElementById("previewCard").style.display = "block";
+      document.getElementById("previewImg").src = st.preview;
+    }
+
+    const titleEl = document.getElementById("autoStatusTitle");
+    if (!st.running) {
+      if (AUTO_TIMER) { clearInterval(AUTO_TIMER); AUTO_TIMER = null; }
+      document.getElementById("btnAutoStart").style.display = "inline-block";
+      document.getElementById("btnLoopStart").style.display = "inline-block";
+      const qBtn = document.getElementById("btnQueueStart");
+      if (qBtn) qBtn.disabled = false;
+      document.getElementById("btnAutoStop").style.display = "none";
+      document.getElementById("btnAutoStop2").style.display = "none";
+      document.getElementById("btnSync").disabled = false;
+
+      if (st.phase === "finished") {
+        titleEl.textContent = `🎉 自动冲分完成（最高 ${st.best_pts} 分）`;
+        setStatus("🎉 " + (st.result_text || "自动通关完成！"), "info");
+      } else if (st.phase === "stopped") {
+        titleEl.textContent = `⏹ 已停止（共 ${st.runs_done} 局 · 最高 ${st.best_pts} 分）`;
+        setStatus(`自动冲分已停止：共完成 ${st.runs_done} 局，最高分 ${st.best_pts}。`, "warn");
+      } else if (st.phase === "error") {
+        titleEl.textContent = "❌ 自动运行中断";
+        setStatus("自动运行中断: " + st.error, "err");
+      }
+    } else {
+      const runTag = maxR === 0 ? `第 ${st.runs_done + 1} 局 / ∞` : `第 ${st.runs_done + 1}/${maxR} 局`;
+      titleEl.textContent = `🤖 自动冲分中 · 第 ${st.stage_id || "?"} 关（${runTag}）`;
+    }
+  } catch (e) {
+    // 忽略偶发轮询超时
+  }
+}
+
+window.addEventListener("keydown", (e) => {
+  if (e.key === "F10" || e.key === "End") {
+    e.preventDefault();
+    stopAutoPlay();
+  }
+});
+
+loadObsSettings();
+initApp();
+</script>
+</body>
+</html>
